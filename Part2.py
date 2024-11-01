@@ -11,119 +11,74 @@ def part2(A1,A2,L):
         which the amino acid sequence pair stored in L[i] occur in the same place.
     """
 
-    # 将A1、A2、L变成对应数字
-    # 构建哈希函数
-    # 循环A1、A2 
+    
+    # Map a to i to 1 to 9
+    # Build hash function to convert A1, A2, and L into corresponding numbers
+    # Loop through L
 
-    #use/modify the code below as needed
+
     n = len(A1) #A2 should be same length
     l = len(L)
     m = len(L[0][0])
     F = [[] for i in range(l)]
     base = 9
-    mod = 11505703
-    # mod = 10**9 + 7  # 大素数，用于模运算
-    base_m = pow(base, m, mod)  # 计算 base^m % mod
-    c2b = {chr(97 + j): j for j in range(9)}  # 97 是字符 'a' 的 ASCII 值
-
-    print("nnnn",n)
+    # Large prime number for modulus
+    mod = 10**9 + 7 
+    # Reusable base^m % mod
+    base_m = pow(base, m, mod)  
+    # ASCII to integer mapping for a-i characters
+    c2b = {chr(97 + j): j for j in range(9)}  
 
     def hash_function(A, m):
+        """Compute hash values for all substrings of length m in A"""
         hashes = {}
         current_hash = 0
-        # 计算第一个长度为 m 的子串的哈希值
+        # Compute the hash for the first m_substring
         for i in range(m):
             current_hash = (current_hash * base + c2b[A[i]]) % mod
+        
+        # Store first hash with start index
+        hashes[current_hash] = [0]  
 
-        hashes[current_hash] = [0]  # 存储第一个子串的哈希值和起始索引
-        # hashes = {‘哈希值’：[初始位置]}
-        #hashes = {‘123’：[0]}
-
-        # 滑动窗口计算每个长度为 m 的子串的哈希值
+        # Use sliding window to calculate subsequent hashes
         for i in range(1, len(A) - m + 1):
             current_hash = (current_hash * base - c2b[A[i-1]] * base_m + c2b[A[i + m - 1]]) % mod
-            current_hash = (current_hash + mod) % mod  # 确保哈希值为非负
+            current_hash = (current_hash + mod) % mod  # Ensure hash value is non-negative
             if current_hash in hashes:
-                hashes[current_hash].append(i)  # 如果哈希值已经存在，添加起始索引
+                hashes[current_hash].append(i)  # If hash value exists, add starting index
             else:
-                hashes[current_hash] = [i]  # 否则，创建新的条目
+                hashes[current_hash] = [i]  # Otherwise, create a new entry
+
 
         return hashes
 
 
-    # 计算 A1 和 A2 的哈希值
+    # Hash A1 and A2
     hashes_A1 = hash_function(A1, m)
     hashes_A2 = hash_function(A2, m)
 
 
- # 计算子串的哈希值
     def get_hash(sub):
+        """Compute hash for a given substring"""
         current_hash = 0
         for i in range(m):
             current_hash = (current_hash * base + c2b[sub[i]]) % mod
         return current_hash
-
+    
+    # Iterate through each sublist in L
     for index, (sub1, sub2) in enumerate(L):
-        hash_sub1 = get_hash(sub1)  # 使用自定义哈希函数计算哈希值
-        hash_sub2 = get_hash(sub2)  # 使用自定义哈希函数计算哈希值
+        hash_sub1 = get_hash(sub1) 
+        hash_sub2 = get_hash(sub2)  
 
         positions = []
+        # Only proceed if hashes match in both sequences
         if hash_sub1 in hashes_A1 and hash_sub2 in hashes_A2:
+            #check the positions where the hashes match in A1
             for pos1 in hashes_A1[hash_sub1]:
                 if A2[pos1:pos1 + m] == sub2:
-                    positions.append(pos1)
-                    # print(f"Matched position {pos1} for sub1: {sub1} and sub2: {sub2}")
-                # else:
-                #     print(f"No match at position {pos1} for sub2: {sub2}")
-                    
-
+                    positions.append(pos1)               
         F[index] = positions
-    print("-----------------\n", F)
-
-
-
-
-
-    # def char2base4(S):
-    #     """Convert gene test_sequence
-    #     string to list of ints
-    #     """
-    
-    #     c2b = {chr(97 + j): j for j in range(10)}  # 97 是字符 'a' 的 ASCII 值
-    #     L = [c2b.get(s) for s in S]
-    #     return L
-    
-    # X = char2base4(A1)
-    # Y = char2base4(A2)
-    
-    # def heval(L,Base,Prime):
-    #     """Convert list L to base-10 number mod Prime
-    #     where Base specifies the base of L
-    #     """
-    #     f = 0
-    #     for l in L[:-1]:
-    #         f = Base*(l+f)
-    #         h = (f + (L[-1])) % Prime
-    #     return h
-    # def match():
-        
-    # ind=0
-    # Base = m 
-    # Prime = n  ######
-    # hp = heval(Y,Base,Prime)
-    # imatch=[]
-    # hi = heval(X[:m],Base,Prime)
-    # if hi==hp:
-    #     if match(X[:m],Y): #Character-by-character comparison
-    #         imatch.append(ind)
-    # bm = (4**m) % q
-    # for ind in range(1,n-m+1):
-    #     #Update rolling hash
-    #     hi = (4*hi – int(X[ind-1])*bm + int(X[ind-1+m])) % q
-    #     if hi==hp: #If hashes match, check if strings match
-    #         if match(X[ind:ind+m],Y): imatch.append(ind)
-
-  
+    return F
 
 #----------------- End code for Part 2 -----------------#
 

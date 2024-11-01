@@ -90,62 +90,36 @@ def part1_test(inputs=None):
     import timeit
     import time
     import matplotlib.pyplot as plt
-    # def get_ids_lists(num_lists, list_size, value_range):
-    #     ids_lists = []
-    #     for _ in range(num_lists):
-    #         ids_list = [random.sample(range(value_range[0], value_range[1]) , list_size)for _ in range(list_size)]
-    #         ids_lists.append(ids_list)
-    #     return ids_lists
-
-    # # 示例：生成5个列表，每个列表包含10个随机整数，范围在1到100之间
-    # lists = get_ids_lists(5, 10, (1, 100))
-    # print(lists)
+    import numpy as np
 
 
-    # 设置随机数种子
     random.seed(31)
-
+    # Number of test runs
     test_runs=100
-    # Set value for n and m
-    # n = random.randint(1,100)
-    # m = random.randint(1,100)
-
-
-
-    # a = [2,4,6,8,10]
-    # Python list containing n integer IDs 
-    # all_ids = random.sample(range(1,200), n)  
-    # # a sequence of m integer IDs.
-    # target_ids = random.sample(range(1, 200), m)
-    # def run_method1():
-    #     for id in target_ids:
-    #         method1(all_ids, id)
-    # execution_time = timeit.timeit(run_method1, number=1000)
-    # print(f"Execution time: {execution_time} seconds")
-
-
+    # Function to apply method1 to each target_id
     def use_method1 (all_ids,target_ids):
         for id in target_ids:
             method1(all_ids,id) 
+    # Function to apply method2 to each target_id with a flag
     def use_method2(all_ids,target_ids,flag):
         for id in target_ids:
             method2(all_ids,id,flag) 
 
-    #use time() to test time
+    # Function to test execution time using time.perf_counter
     def TimeTest1(method,all_ids,target_ids,flag):
         if method == method1:
-            t1 = time.perf_counter()
-            use_method1(all_ids,target_ids)
-            t2 = time.perf_counter()
+            t1 = time.perf_counter() # Start timer
+            use_method1(all_ids,target_ids) # Execute method1
+            t2 = time.perf_counter() # End timer
         else :
             t1 = time.perf_counter()
             use_method2(all_ids,target_ids,flag)
             t2 = time.perf_counter()
-        return t2-t1
+        return t2-t1 # Return elapsed time
     
-    #use timeit() to test time
+    # Function to test execution time using timeit
     def TimeTest2(method,all_ids,target_ids,flag):
-        # 测量代码执行时间
+        # Measure code execution time
         if method == method1:
             t = timeit.timeit(lambda:use_method1(all_ids,target_ids), number=test_runs)
         else:
@@ -153,203 +127,240 @@ def part1_test(inputs=None):
         return t
 
 
+    N = np.array([1, 2, 3, 6, 9, 15, 17, 20, 50, 200, 800, 1000, 5000])
+    M = [500]*len(N)
 
-    N = [4,6,8,10,12,14,16]
-    M = [2,4,6,8,10,12,14]
-    #Tij:use TimeTesti to test time using methodj
-    T11 = [] #use test1_time_method to test time using method 1
-    T21 = [] #use test2_time_method to test time using method 1
-    T11_sort = [] #use test1_time_method to test time using method 1
-    T21_sort = [] #use test2_time_method to test time using method 1
+    # Initialize counters for performance tracking
+    counters = [[], [], []]  
+    # Store execution times for different methods and tests in a dictionary
+    time_data = {
+        "method1": {
+            "test1": {"unsorted": [], "sorted": []},
+            "test2": {"unsorted": [], "sorted": []}
+        },
+        "method2": {
+            "test1": {"unsorted": [], "sorted": []},
+            "test2": {"unsorted": [], "sorted": []}
+        }
+    }
 
-    T12 = [] #use test1_time_method to test time using method 2
-    T22 = [] #use test2_time_method to test time using method 2
-    T12_sort = [] #use test1_time_method to test time using method 2
-    T22_sort = [] #use test2_time_method to test time using method 2
-
-
-    T = [] #use test2_time_method to test time
-    T1 = [] #use test2_time_method to test time
-
-    C10 = []
-    C20 = []
-    C21 = []
-
-    
-    #ti_j_k:= 用第i个测时间的方法去测试第j个方案，规模是第k种
     for i, (n, m) in enumerate(zip(N, M)):
-        n = 50*n
-        m = 20*m
-        n1 = 10*n
-        m1 = 5*m
-        print("n=",n,"m=",m,"n1=",n1, "m1=", m1)
-        all_ids = random.sample(range(1,n1*2), n1)  
-        target_ids = random.sample(range(1, n1*2), m1)
-        # 处理排序前的列表
-
-        #t=test1_time_method(method1,all_ids[:n],target_ids[:m])  
-        #t1=test1_time_method(method1,all_ids,target_ids)
-        T11.append(TimeTest1(method1,all_ids[:n],target_ids[:m],None)) #(n,m)组合下用第一种方法去测试方法一的时间
-        #t=test2_time_method(method1,all_ids[:n],target_ids[:m])
-        #t1=test2_time_method(method1,all_ids,target_ids)
-        T21.append(TimeTest2(method1,all_ids[:n],target_ids[:m],None)/test_runs)#(n,m)组合下用第一种方法去测试方法一的时间
+        # Generate random IDs
+        all_ids = random.sample(range(1,n*2), n)  
+        # Generate random target 
+        target_ids = random.choices(range(1, n*2), k=m)
+        # Test method1 and 2  with test1 and 2 for unsorted data
+        time_data["method1"]["test1"]["unsorted"].append(
+            TimeTest1(method1,all_ids,target_ids,None)) 
+        time_data["method1"]["test2"]["unsorted"].append(
+            TimeTest2(method1,all_ids,target_ids,None)/test_runs)
+        time_data["method2"]["test1"]["unsorted"].append(
+            TimeTest1(method2,all_ids,target_ids,True)) 
+        time_data["method2"]["test2"]["unsorted"].append(
+            TimeTest2(method2,all_ids,target_ids,True)/test_runs)
         
-        C10.append(n*m) #(n,m)组合下用方法一,时间复杂度=O(n*m)
+        counters[0].append(n) 
+        # Calculate theoretical complexity values for method1 and method2
+        complexity_values_method1 = N/(200*max(N))
+        complexity_values_method2_unsorted = N * np.log2(N)/(200*max(N))
+        complexity_values_method2_sorted =  np.log2(N)/(200*max(N))
 
-        T12.append(TimeTest1(method2,all_ids[:n],target_ids[:m],True)) #(n,m)组合下用第一种方法去测试方法2的时间
-        T22.append(TimeTest2(method2,all_ids[:n],target_ids[:m],True)/test_runs)#(n,m)组合下用第2种方法去测试方法2的时间
-
-        #处理排序后的列表
+        # Process sorted lists
         Ids_WithIndex = list(enumerate(all_ids))
         sorted_Ids_WithIndex = sorted(Ids_WithIndex, key=lambda x: x[1])
         sorted_Ids_WithoutIndex = [_ for i,_ in sorted_Ids_WithIndex]
-        # sorted_Ids_WithoutIndex = sorted(all_ids)
-
-        T11_sort.append(TimeTest1(method1,sorted_Ids_WithoutIndex[:n],target_ids[:m],None)) #(n,m)组合下用第一种方法去测试方法一的时间
-        T21_sort.append(TimeTest2(method1,sorted_Ids_WithoutIndex[:n],target_ids[:m],None)/test_runs)#(n,m)组合下用第2种方法去测试方法一的时间
-
-
-        import math 
-        
-
-        T12_sort.append(TimeTest1(method2,sorted_Ids_WithIndex[:n],target_ids[:m],False)) #(n,m)组合下用第一种方法去测试方法2的时间
-        T22_sort.append(TimeTest2(method2,sorted_Ids_WithIndex[:n],target_ids[:m],False)/test_runs)#(n,m)组合下用第2种方法去测试方法2的时间
-
-
-        C20.append((n+m)*math.log(n, 2)) #(n,m)组合下用方法一,时间复杂度=O(n*m)
-        C21.append(math.log(n, 2)*m) #(n,m)组合下用方法一,时间复杂度=O(n*m)
-
-        # print(n,m,t)
-        # print(n1,m1,t1)
-        # print("use test1_time_method to test time\n time ratio=",t1/t,"scale ratio=",n1*m1/(n*m),"coefficien=" ,n1*m1*t/(n*m*t1))
-        # print("use test2_time_method to test time\n time ratio=",t11/t10,"scale ratio=",n1*m1/(n*m),"coefficien=" ,n1*m1*t10/(n*m*t11))
-
-    def plotting(i,data,title):
-        plt.figure()
-
-        # 使用循环绘制所有图形
-        for x, y, label, marker in data:
-            plt.plot(x, y, label=label, marker=marker)
-
-        # 添加标题和标签
-        plt.title('method1 : t and n * m')
-        plt.xlabel('n * m')
-        plt.ylabel('t')
-
-        # 添加图例
-        plt.legend()
-
-        # # 显示图形
-        plt.grid()
-
-        plt.show()
-
-
-        
-        # 创建一个新图形
+        # Test method1 and 2  with test1 and 2 for sorted data
+        time_data["method1"]["test1"]["sorted"].append(
+            TimeTest1(method1,sorted_Ids_WithoutIndex,target_ids,None)) 
+        time_data["method1"]["test2"]["sorted"].append(
+            TimeTest2(method1,sorted_Ids_WithoutIndex,target_ids,None)/test_runs)
+        time_data["method2"]["test1"]["sorted"].append(
+            TimeTest1(method2,sorted_Ids_WithIndex,target_ids,False)) 
+        time_data["method2"]["test2"]["sorted"].append(
+            TimeTest2(method2,sorted_Ids_WithIndex,target_ids,False)/test_runs)
+    
     plt.figure(1)
-
-    # # 绘制 T00 相对于 n*m 的关系
-    # plt.plot(C00,T00, label='T00 vs n*m',marker='o')
-
-    # # 绘制 T01 相对于 n*m 的关系
-    # plt.plot(C00,T01, label='T01 vs n*m', marker='x')
-
-    # # 绘制 T00 相对于 n*m 的关系
-    # plt.plot(C00,T10, label='T10 vs n*m',marker='v')
-
-    # # 绘制 T01 相对于 n*m 的关系
-    # plt.plot(C00,T11, label='T11 vs n*m', marker='^')
-    # 创建一个列表，包含绘图所需的数据和标签
     data = [
-        (C10, T11, 'T11 vs n*m', 'o'),
-        (C10, T21, 'T21 vs n*m', 'x'),
-        (C10, T11_sort, 'T11_sort vs n*m', 'v'),
-        (C10, T11_sort, 'T21_sort vs n*m', '^')
-    ]
+    (counters[0], time_data["method1"]["test1"]["unsorted"], 'T_method1_test1_unsorted', 'o'),
+    (counters[0], time_data["method1"]["test2"]["unsorted"], 'T_method1_test2_unsorted', '^'),
+    (counters[0], time_data["method1"]["test1"]["sorted"], 'T_method1_test1_sorted', 's'),
+    (counters[0], time_data["method1"]["test2"]["sorted"], 'T_method1_test2_sorted', 'D'),
+    (counters[0], time_data["method2"]["test1"]["unsorted"], 'T_method2_test1_unsorted', 'v'),
+    (counters[0], time_data["method2"]["test2"]["unsorted"], 'T_method2_test2_unsorted', '*'),
+    (counters[0], time_data["method2"]["test1"]["sorted"], 'T_method2_test1_sorted', 'p'),
+    (counters[0], time_data["method2"]["test2"]["sorted"], 'T_method2_test2_sorted', 'h'),
+    (counters[0], complexity_values_method1, r'Theoretical Complexity $n$', 'o'),
+    (counters[0], complexity_values_method2_unsorted, r'Theoretical Complexity $n\log n+ log n$', '^'),
+    (counters[0], complexity_values_method2_sorted, r'Theoretical Complexity $log n$','s'),
 
-    # 使用循环绘制所有图形
+
+]
+
     for x, y, label, marker in data:
         plt.plot(x, y, label=label, marker=marker)
-
-    # 添加标题和标签
-    plt.title('method1 : t and n * m')
-    plt.xlabel('n * m')
-    plt.ylabel('t')
-
-    # 添加图例
+    plt.title('Method Performance Comparison (Fix m)')
+    plt.xlabel('n')
+    plt.ylabel('t(log)')
+    plt.yscale('log')  # Set y-axis to logarithmic scale
     plt.legend()
-
-    # # 显示图形
     plt.grid()
-
     plt.show()
 
 
+    #####picture 2
+    M = np.array([1,2,3,6,9,15,17,20,50, 200, 800, 1000,5000])
+    
+    N = [500]*len(M)
 
+    time_data = {
+        "method1": {
+            "test1": {"unsorted": [], "sorted": []},
+            "test2": {"unsorted": [], "sorted": []}
+        },
+        "method2": {
+            "test1": {"unsorted": [], "sorted": []},
+            "test2": {"unsorted": [], "sorted": []}
+        }
+    }
+
+    for i, (n, m) in enumerate(zip(N, M)):
+        all_ids = random.sample(range(1,n*2), n)  
+        target_ids = random.choices(range(1, n*2), k=m)
+
+        time_data["method1"]["test1"]["unsorted"].append(
+            TimeTest1(method1,all_ids,target_ids,None)) 
+        time_data["method1"]["test2"]["unsorted"].append(
+            TimeTest2(method1,all_ids,target_ids,None)/test_runs)
+        time_data["method2"]["test1"]["unsorted"].append(
+            TimeTest1(method2,all_ids,target_ids,True)) 
+        time_data["method2"]["test2"]["unsorted"].append(
+            TimeTest2(method2,all_ids,target_ids,True)/test_runs)
+
+        counters[1].append(m) 
+
+        complexity_values = M/(200*max(M))
+        
+        Ids_WithIndex = list(enumerate(all_ids))
+        sorted_Ids_WithIndex = sorted(Ids_WithIndex, key=lambda x: x[1])
+        sorted_Ids_WithoutIndex = [_ for i,_ in sorted_Ids_WithIndex]
+
+        time_data["method1"]["test1"]["sorted"].append(
+            TimeTest1(method1,sorted_Ids_WithoutIndex,target_ids,None)) 
+        time_data["method1"]["test2"]["sorted"].append(
+            TimeTest2(method1,sorted_Ids_WithoutIndex,target_ids,None)/test_runs)
+        time_data["method2"]["test1"]["sorted"].append(
+            TimeTest1(method2,sorted_Ids_WithIndex,target_ids,False)) 
+        time_data["method2"]["test2"]["sorted"].append(
+            TimeTest2(method2,sorted_Ids_WithIndex,target_ids,False)/test_runs)
 
     plt.figure(2)
-
-    # # 绘制 T00 相对于 n*m 的关系
-    # plt.plot(C00,T00, label='T00 vs n*m',marker='o')
-
-    # # 绘制 T01 相对于 n*m 的关系
-    # plt.plot(C00,T01, label='T01 vs n*m', marker='x')
-
-    # # 绘制 T00 相对于 n*m 的关系
-    # plt.plot(C00,T10, label='T10 vs n*m',marker='v')
-
-    # # 绘制 T01 相对于 n*m 的关系
-    # plt.plot(C00,T11, label='T11 vs n*m', marker='^')
-    # 创建一个列表，包含绘图所需的数据和标签
     data = [
-        # (C20, T12, 'T12 vs n*m', 'o'),
-        # (C20, T22, 'T22 vs n*m', 'x'),
-        (C21, T12_sort, 'T12_sort vs n*m', 'v'),
-        (C21, T12_sort, 'T22_sort vs n*m', '^')
-    ]
+    (counters[1], time_data["method1"]["test1"]["unsorted"], 'T_method1_test1_unsorted', 'o'),
+    (counters[1], time_data["method1"]["test2"]["unsorted"], 'T_method1_test2_unsorted', '^'),
+    (counters[1], time_data["method1"]["test1"]["sorted"], 'T_method1_test1_sorted', 's'),
+    (counters[1], time_data["method1"]["test2"]["sorted"], 'T_method1_test2_sorted', 'D'),
+    (counters[1], time_data["method2"]["test1"]["unsorted"], 'T_method2_test1_unsorted', 'v'),
+    (counters[1], time_data["method2"]["test2"]["unsorted"], 'T_method2_test2_unsorted', '*'),
+    (counters[1], time_data["method2"]["test1"]["sorted"], 'T_method2_test1_sorted', 'p'),
+    (counters[1], time_data["method2"]["test2"]["sorted"], 'T_method2_test2_sorted', 'h'),
+    (counters[1], complexity_values, r'Theoretical Complexity $m$', 'o')
+    
+
+]
+
+    for x, y, label, marker in data:
+        plt.plot(x, y, label=label, marker=marker)
+    plt.title('Method Performance Comparison (Fix n)')
+    plt.xlabel('m')
+    plt.ylabel('t(log)')
+    plt.yscale('log') 
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+#######pictur 3
+    N = np.array([1,2,3,6,9,15,17,20,50, 200, 800, 1000,5000])
+    r=10
+    M = r*N
+
+    time_data = {
+        "method1": {
+            "test1": {"unsorted": [], "sorted": []},
+            "test2": {"unsorted": [], "sorted": []}
+        },
+        "method2": {
+            "test1": {"unsorted": [], "sorted": []},
+            "test2": {"unsorted": [], "sorted": []}
+        }
+    }
+
+
+    for i, (n, m) in enumerate(zip(N, M)):
+        all_ids = random.sample(range(1,n*2), n)  
+        target_ids = random.choices(range(1, n*2), k=m)
+
+        time_data["method1"]["test1"]["unsorted"].append(
+            TimeTest1(method1,all_ids,target_ids,None)) 
+        time_data["method1"]["test2"]["unsorted"].append(
+            TimeTest2(method1,all_ids,target_ids,None)/test_runs)
+        time_data["method2"]["test1"]["unsorted"].append(
+            TimeTest1(method2,all_ids,target_ids,True)) 
+        time_data["method2"]["test2"]["unsorted"].append(
+            TimeTest2(method2,all_ids,target_ids,True)/test_runs)
+
+
+        counters[2].append(n) 
+        
+        complexity_values_method1 = N*M/(200*max(N))
+        complexity_values_method2_unsorted = N * np.log2(N)+ M* np.log2(N)/(200*max(N))
+        complexity_values_method2_sorted =  M * np.log2(N)/(200*max(N))
+        
+        Ids_WithIndex = list(enumerate(all_ids))
+        sorted_Ids_WithIndex = sorted(Ids_WithIndex, key=lambda x: x[1])
+        sorted_Ids_WithoutIndex = [_ for i,_ in sorted_Ids_WithIndex]
+
+        time_data["method1"]["test1"]["sorted"].append(
+            TimeTest1(method1,sorted_Ids_WithoutIndex,target_ids,None))
+        time_data["method1"]["test2"]["sorted"].append(
+            TimeTest2(method1,sorted_Ids_WithoutIndex,target_ids,None)/test_runs)
+        time_data["method2"]["test1"]["sorted"].append(
+            TimeTest1(method2,sorted_Ids_WithIndex,target_ids,False)) 
+        time_data["method2"]["test2"]["sorted"].append(
+            TimeTest2(method2,sorted_Ids_WithIndex,target_ids,False)/test_runs)
+    
+
+    plt.figure(3)
+    data = [
+    (counters[2], time_data["method1"]["test1"]["unsorted"], 'T_method1_test1_unsorted', 'o'),
+    (counters[2], time_data["method1"]["test2"]["unsorted"], 'T_method1_test2_unsorted', '^'),
+    (counters[2], time_data["method1"]["test1"]["sorted"], 'T_method1_test1_sorted', 's'),
+    (counters[2], time_data["method1"]["test2"]["sorted"], 'T_method1_test2_sorted', 'D'),
+    (counters[2], time_data["method2"]["test1"]["unsorted"], 'T_method2_test1_unsorted', 'v'),
+    (counters[2], time_data["method2"]["test2"]["unsorted"], 'T_method2_test2_unsorted', '*'),
+    (counters[2], time_data["method2"]["test1"]["sorted"], 'T_method2_test1_sorted', 'p'),
+    (counters[2], time_data["method2"]["test2"]["sorted"], 'T_method2_test2_sorted', 'h'),
+    (counters[2], complexity_values_method1, r'Theoretical Complexity $n*m$', 'o'),
+    (counters[2], complexity_values_method2_unsorted, r'Theoretical Complexity $n\log n+ m\log n$', '^'),
+    (counters[2], complexity_values_method2_sorted, r'Theoretical Complexity $m\log n$','s'),
+    
+
+]
+
 
     # 使用循环绘制所有图形
     for x, y, label, marker in data:
         plt.plot(x, y, label=label, marker=marker)
 
     # 添加标题和标签
-    plt.title('method2 : t and n * m')
-    plt.xlabel('n * m')
-    plt.ylabel('t')
+    plt.title('Method Performance Comparison (Fix r=m/n)')
+    plt.xlabel('n')
+    plt.ylabel('t(log)')
+    plt.yscale('log') 
 
-    # 添加图例
     plt.legend()
-
-    # # 显示图形
     plt.grid()
     plt.show()
 
-    
-
-
-
-
-    # for id in target_ids:
-    #     time_start_m1 = time.time()
-    #     method1(all_ids,id) 
-    #     time_end_m1 = time.time()
-    #     method2(all_ids,id,flag=True)
-    #     print("method1",method1(all_ids,id))
-    #     print("method2",method2(all_ids,id,flag=True))
-
-
-    # indexed_ids = list(enumerate(all_ids))
-
-    # sorted_indexed_ids = sorted(indexed_ids, key=lambda x: x[1])
-
-    # for id in target_ids:
-    #     method2(sorted_indexed_ids,id,flag=False)
-    #     print("method2",method2(sorted_indexed_ids,id,flag=False))
-
-    
-    # print(all_ids)
-    # print(target_ids)
 
 
     outputs=None
@@ -374,138 +385,76 @@ def part2(A1,A2,L):
         which the amino acid sequence pair stored in L[i] occur in the same place.
     """
 
-    # 将A1、A2、L变成对应数字
-    # 构建哈希函数
-    # 循环A1、A2 
+    
+    # Map a to i to 1 to 9
+    # Build hash function to convert A1, A2, and L into corresponding numbers
+    # Loop through L
 
-    #use/modify the code below as needed
+
     n = len(A1) #A2 should be same length
     l = len(L)
     m = len(L[0][0])
     F = [[] for i in range(l)]
+    base = 9
+    # Large prime number for modulus
+    mod = 10**9 + 7 
+    # Reusable base^m % mod
+    base_m = pow(base, m, mod)  
+    # ASCII to integer mapping for a-i characters
+    c2b = {chr(97 + j): j for j in range(9)}  
 
     def hash_function(A, m):
+        """Compute hash values for all substrings of length m in A"""
         hashes = {}
-        base = 9
-        mod = 10**9 + 7  # 大素数，用于模运算
         current_hash = 0
-        base_m = pow(base, m, mod)  # 计算 base^m % mod
-        c2b = {chr(97 + j): j for j in range(9)}  # 97 是字符 'a' 的 ASCII 值
-
-        # 计算第一个长度为 m 的子串的哈希值
+        # Compute the hash for the first m_substring
         for i in range(m):
-            current_hash = (current_hash * base + c2b(A[i])) % mod
+            current_hash = (current_hash * base + c2b[A[i]]) % mod
+        
+        # Store first hash with start index
+        hashes[current_hash] = [0]  
 
-        hashes[current_hash] = [0]  # 存储第一个子串的哈希值和起始索引
-        # hashes = {‘哈希值’：[初始位置]}
-        #hashes = {‘123’：[0]}
-
-        # 滑动窗口计算每个长度为 m 的子串的哈希值
-        for i in range(1, len(A) - m + 1):
-            current_hash = (current_hash * base - c2b(A[i-1]) * base_m + c2b(A[i + m - 1])) % mod
-            current_hash = (current_hash + mod) % mod  # 确保哈希值为非负
+        # Use sliding window to calculate subsequent hashes
+        for i in range(1, n - m + 1):
+            current_hash = (current_hash * base - c2b[A[i-1]] * base_m + c2b[A[i + m - 1]]) % mod
+            current_hash = (current_hash + mod) % mod  # Ensure hash value is non-negative
             if current_hash in hashes:
-                hashes[current_hash].append(i)  # 如果哈希值已经存在，添加起始索引
+                hashes[current_hash].append(i)  # If hash value exists, add starting index
             else:
-                hashes[current_hash] = [i]  # 否则，创建新的条目
+                hashes[current_hash] = [i]  # Otherwise, create a new entry
+
 
         return hashes
 
 
-    # 计算 A1 和 A2 的哈希值
+    # Hash A1 and A2
     hashes_A1 = hash_function(A1, m)
     hashes_A2 = hash_function(A2, m)
 
-    for sub1, sub2 in L:
-        hash_sub1 = hash(sub1)  # 计算模式 seq1 的哈希值
-        hash_sub2 = hash(sub2)  # 计算模式 seq2 的哈希值
+
+    def get_hash(sub):
+        """Compute hash for a given substring"""
+        current_hash = 0
+        for i in range(m):
+            current_hash = (current_hash * base + c2b[sub[i]]) % mod
+        return current_hash
+    
+    # Iterate through each sublist in L
+    for index, (sub1, sub2) in enumerate(L):
+        hash_sub1 = get_hash(sub1) 
+        hash_sub2 = get_hash(sub2)  
 
         positions = []
+        # Only proceed if hashes match in both sequences
         if hash_sub1 in hashes_A1 and hash_sub2 in hashes_A2:
-            # if hashes_A1[hash_sub1] == hashes_A2[hash_sub2]:
-            #     positions.append(hashes_A1[hash_sub1])
-
-            #     positions.extend([hashes_A1[hash_sub1], hashes_A2[hash_sub2]])
-            
+            #check the positions where the hashes match in A1
             for pos1 in hashes_A1[hash_sub1]:
-                if A2[pos1:pos1 + m] == sub2:  # 验证实际序列匹配
-                    positions.append(pos1)
-
-
-        F.append(positions)  # 将匹配的位置添加到结果列表
-
-
-
-
-
-    # def char2base4(S):
-    #     """Convert gene test_sequence
-    #     string to list of ints
-    #     """
-    
-    #     c2b = {chr(97 + j): j for j in range(10)}  # 97 是字符 'a' 的 ASCII 值
-    #     L = [c2b.get(s) for s in S]
-    #     return L
-    
-    # X = char2base4(A1)
-    # Y = char2base4(A2)
-    
-    # def heval(L,Base,Prime):
-    #     """Convert list L to base-10 number mod Prime
-    #     where Base specifies the base of L
-    #     """
-    #     f = 0
-    #     for l in L[:-1]:
-    #         f = Base*(l+f)
-    #         h = (f + (L[-1])) % Prime
-    #     return h
-    # def match():
-        
-    # ind=0
-    # Base = m 
-    # Prime = n  ######
-    # hp = heval(Y,Base,Prime)
-    # imatch=[]
-    # hi = heval(X[:m],Base,Prime)
-    # if hi==hp:
-    #     if match(X[:m],Y): #Character-by-character comparison
-    #         imatch.append(ind)
-    # bm = (4**m) % q
-    # for ind in range(1,n-m+1):
-    #     #Update rolling hash
-    #     hi = (4*hi – int(X[ind-1])*bm + int(X[ind-1+m])) % q
-    #     if hi==hp: #If hashes match, check if strings match
-    #         if match(X[ind:ind+m],Y): imatch.append(ind)
-
-  
+                if A2[pos1:pos1 + m] == sub2:
+                    positions.append(pos1)               
+        F[index] = positions
+    return F
 
 #----------------- End code for Part 2 -----------------#
-
-
-
-
-
-
-import random
-
-def generate_random_sequence(length):
-    # 生成一个随机字符串，长度为 length，字符从 'a' 到 'i'
-    return ''.join(random.choice('abcdefghi') for _ in range(length))
-
-def generate_L(num_pairs, m):
-    L = []
-    for _ in range(num_pairs):
-        # 为每一对生成两个随机字符串
-        sublist = [generate_random_sequence(m), generate_random_sequence(m)]
-        L.append(sublist)
-    return L
-
-# 示例: 生成 5 对，长度为 3 的字符串
-num_pairs = 5
-m = 3
-L = generate_L(num_pairs, m)
-print(L)
-
 
 
 
